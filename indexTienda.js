@@ -5,7 +5,7 @@ import { sequelize } from "./database.js";
 const { Usuario, Producto, Orden } = require('./models');
 
 const app = express();
-const port =process.env.PORT || 5432;
+const PORT =process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
