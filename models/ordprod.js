@@ -1,17 +1,18 @@
-'use strict';
-const { Model } = require('sequelize');
+import { Model } from "sequelize";
 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   class OrdProd extends Model {
     static associate(models) {
-      // Opcional: acceso directo desde OrdProd a Orden y Producto
+      // Relación con Orden
       OrdProd.belongsTo(models.Orden, {
-        foreignKey: 'ordenId',
-        as: 'orden'
+        foreignKey: "ordenId",
+        as: "orden",
       });
+
+      // Relación con Producto
       OrdProd.belongsTo(models.Producto, {
-        foreignKey: 'productoId',
-        as: 'producto'
+        foreignKey: "productoId",
+        as: "producto",
       });
     }
   }
@@ -21,14 +22,15 @@ module.exports = (sequelize, DataTypes) => {
       ordenId: DataTypes.INTEGER,
       productoId: DataTypes.INTEGER,
       cantidad: DataTypes.INTEGER,
-      precioUnitario: DataTypes.FLOAT
+      precioUnitario: DataTypes.FLOAT,
     },
     {
       sequelize,
-      modelName: 'OrdProd',
-      tableName: 'OrdProds'
+      modelName: "OrdProd",
+      tableName: "OrdProds",
     }
   );
 
   return OrdProd;
 };
+

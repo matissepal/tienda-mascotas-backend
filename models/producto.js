@@ -1,40 +1,66 @@
-'use strict';
-const { Model } = require('sequelize');
+import { Model } from "sequelize";
 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   class Producto extends Model {
     static associate(models) {
-
-      // ✔ Relación N:M con Ordenes
+      // N:M con Ordenes
       Producto.belongsToMany(models.Orden, {
         through: models.OrdProd,
-        foreignKey: 'productoId',
-        otherKey: 'ordenId',
-        as: 'ordenes'
+        foreignKey: "productoId",
+        otherKey: "ordenId",
+        as: "ordenes",
       });
 
-      // ✔ Acceso directo al detalle
+      // Detalle directo (1:N)
       Producto.hasMany(models.OrdProd, {
-        foreignKey: 'productoId',
-        as: 'detalle'
+        foreignKey: "productoId",
+        as: "detalle",
       });
     }
   }
 
-  Producto.init({
-    nombre: DataTypes.STRING,
-    descripcion: DataTypes.JSON,
-    imagenUrl: DataTypes.STRING,
-    imagenUrlCartoon: DataTypes.STRING,
-    precio: DataTypes.FLOAT,
-    categoria: DataTypes.STRING,
-    ventasMes: DataTypes.INTEGER,
-    activo: DataTypes.BOOLEAN
-  }, {
-    sequelize,
-    modelName: 'Producto',
-    tableName: 'Productos'
-  });
+  Producto.init(
+    {
+      nombre: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      descripcion: {
+        type: DataTypes.JSON,
+        allowNull: true,
+      },
+      imagenUrl: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      imagenUrlCartoon: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      precio: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
+      },
+      categoria: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      ventasMes: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
+      activo: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+      },
+    },
+    {
+      sequelize,
+      modelName: "Producto",
+      tableName: "Productos",
+    }
+  );
 
   return Producto;
 };
+

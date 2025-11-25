@@ -1,30 +1,43 @@
-const express = require('express');
-const cors = require('cors');
+import express from "express";
+import cors from "cors";
 import { sequelize } from "./database.js";
+import db from "./models/index.js"; // <-- IMPORTA TODOS LOS MODELOS
 
-const { Usuario, Producto, Orden } = require('./models');
+const { Usuario, Producto, Orden, OrdProd } = db;
 
 const app = express();
-const PORT =process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+
+// 🔄 Probar conexión BD
+(async () => {
+  try {
+    await sequelize.authenticate();
+    console.log("✅ Conexión a la BD exitosa");
+  } catch (err) {
+    console.error("❌ Error al conectar a la BD:", err);
+  }
+})();
 
 // ========================================================
 // USUARIOS
 // ========================================================
 
-app.get('/usuarios', async (req, res) => {
+app.get("/usuarios", async (req, res) => {
   const usuarios = await Usuario.findAll();
   res.json(usuarios);
 });
 
-app.get('/usuarios/:id', async (req, res) => {
+app.get("/usuarios/:id", async (req, res) => {
   const usuario = await Usuario.findByPk(req.params.id);
-  usuario ? res.json(usuario) : res.status(404).json({ error: "Usuario no encontrado" });
+  usuario
+    ? res.json(usuario)
+    : res.status(404).json({ error: "Usuario no encontrado" });
 });
 
-app.post('/usuarios', async (req, res) => {
+app.post("/usuarios", async (req, res) => {
   try {
     const nuevo = await Usuario.create(req.body);
     res.json(nuevo);
@@ -33,17 +46,19 @@ app.post('/usuarios', async (req, res) => {
   }
 });
 
-app.put('/usuarios/:id', async (req, res) => {
+app.put("/usuarios/:id", async (req, res) => {
   const usuario = await Usuario.findByPk(req.params.id);
-  if (!usuario) return res.status(404).json({ error: "Usuario no encontrado" });
+  if (!usuario)
+    return res.status(404).json({ error: "Usuario no encontrado" });
 
   await usuario.update(req.body);
   res.json(usuario);
 });
 
-app.delete('/usuarios/:id', async (req, res) => {
+app.delete("/usuarios/:id", async (req, res) => {
   const usuario = await Usuario.findByPk(req.params.id);
-  if (!usuario) return res.status(404).json({ error: "Usuario no encontrado" });
+  if (!usuario)
+    return res.status(404).json({ error: "Usuario no encontrado" });
 
   await usuario.destroy();
   res.json({ mensaje: "Usuario eliminado" });
@@ -53,13 +68,13 @@ app.delete('/usuarios/:id', async (req, res) => {
 // CAMBIAR CONTRASEÑA
 // ========================================================
 
-app.put('/usuarios/:id/password', async (req, res) => {
+app.put("/usuarios/:id/password", async (req, res) => {
   try {
-    const { id } = req.params;
     const { actual, nueva } = req.body;
+    const usuario = await Usuario.findByPk(req.params.id);
 
-    const usuario = await Usuario.findByPk(id);
-    if (!usuario) return res.status(404).json({ error: "Usuario no encontrado" });
+    if (!usuario)
+      return res.status(404).json({ error: "Usuario no encontrado" });
 
     if (usuario.password !== actual)
       return res.status(400).json({ error: "Contraseña actual incorrecta" });
@@ -77,7 +92,7 @@ app.put('/usuarios/:id/password', async (req, res) => {
 // LOGIN
 // ========================================================
 
-app.post('/login', async (req, res) => {
+app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -88,18 +103,19 @@ app.post('/login', async (req, res) => {
 
     if (!usuario)
       return res.status(401).json({ error: "Credenciales inválidas" });
-    
+
     if (!usuario.activo)
-      return res.status(403).json({ error: "Usuario inactivo, no puede iniciar sesión" });
+      return res
+        .status(403)
+        .json({ error: "Usuario inactivo, no puede iniciar sesión" });
 
     res.json({
       id: usuario.id,
       nombre: usuario.nombre,
       apellido: usuario.apellido,
       email: usuario.email,
-      role: usuario.role
+      role: usuario.role,
     });
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error en el servidor" });
@@ -110,17 +126,19 @@ app.post('/login', async (req, res) => {
 // PRODUCTOS
 // ========================================================
 
-app.get('/productos', async (req, res) => {
+app.get("/productos", async (req, res) => {
   const productos = await Producto.findAll();
   res.json(productos);
 });
 
-app.get('/productos/:id', async (req, res) => {
+app.get("/productos/:id", async (req, res) => {
   const producto = await Producto.findByPk(req.params.id);
-  producto ? res.json(producto) : res.status(404).json({ error: "Producto no encontrado" });
+  producto
+    ? res.json(producto)
+    : res.status(404).json({ error: "Producto no encontrado" });
 });
 
-app.post('/productos', async (req, res) => {
+app.post("/productos", async (req, res) => {
   try {
     const nuevo = await Producto.create(req.body);
     res.json(nuevo);
@@ -129,17 +147,19 @@ app.post('/productos', async (req, res) => {
   }
 });
 
-app.put('/productos/:id', async (req, res) => {
+app.put("/productos/:id", async (req, res) => {
   const producto = await Producto.findByPk(req.params.id);
-  if (!producto) return res.status(404).json({ error: "Producto no encontrado" });
+  if (!producto)
+    return res.status(404).json({ error: "Producto no encontrado" });
 
   await producto.update(req.body);
   res.json(producto);
 });
 
-app.delete('/productos/:id', async (req, res) => {
+app.delete("/productos/:id", async (req, res) => {
   const producto = await Producto.findByPk(req.params.id);
-  if (!producto) return res.status(404).json({ error: "Producto no encontrado" });
+  if (!producto)
+    return res.status(404).json({ error: "Producto no encontrado" });
 
   await producto.destroy();
   res.json({ mensaje: "Producto eliminado" });
@@ -149,14 +169,15 @@ app.delete('/productos/:id', async (req, res) => {
 // ORDENES
 // ========================================================
 
-app.get('/ordenes', async (req, res) => {
+app.get("/ordenes", async (req, res) => {
   try {
     const ordenes = await Orden.findAll({
       include: [
-        { model: Usuario, as: 'usuario' },
-        { model: Producto, as: 'productos' }
-      ]
+        { model: Usuario, as: "usuario" },
+        { model: Producto, as: "productos" },
+      ],
     });
+
     res.json(ordenes);
   } catch (err) {
     console.error(err);
@@ -164,24 +185,25 @@ app.get('/ordenes', async (req, res) => {
   }
 });
 
-app.get('/ordenes/:id', async (req, res) => {
+app.get("/ordenes/:id", async (req, res) => {
   try {
     const orden = await Orden.findByPk(req.params.id, {
       include: [
-        { model: Usuario, as: 'usuario' },
-        { model: Producto, as: 'productos' }
-      ]
+        { model: Usuario, as: "usuario" },
+        { model: Producto, as: "productos" },
+      ],
     });
 
-    orden ? res.json(orden) : res.status(404).json({ error: "Orden no encontrada" });
-
+    orden
+      ? res.json(orden)
+      : res.status(404).json({ error: "Orden no encontrada" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error obteniendo la orden" });
   }
 });
 
-app.post('/ordenes', async (req, res) => {
+app.post("/ordenes", async (req, res) => {
   try {
     const nueva = await Orden.create(req.body);
     res.json(nueva);
@@ -190,17 +212,19 @@ app.post('/ordenes', async (req, res) => {
   }
 });
 
-app.put('/ordenes/:id', async (req, res) => {
+app.put("/ordenes/:id", async (req, res) => {
   const orden = await Orden.findByPk(req.params.id);
-  if (!orden) return res.status(404).json({ error: "Orden no encontrada" });
+  if (!orden)
+    return res.status(404).json({ error: "Orden no encontrada" });
 
   await orden.update(req.body);
   res.json(orden);
 });
 
-app.delete('/ordenes/:id', async (req, res) => {
+app.delete("/ordenes/:id", async (req, res) => {
   const orden = await Orden.findByPk(req.params.id);
-  if (!orden) return res.status(404).json({ error: "Orden no encontrada" });
+  if (!orden)
+    return res.status(404).json({ error: "Orden no encontrada" });
 
   await orden.destroy();
   res.json({ mensaje: "Orden eliminada" });
@@ -210,4 +234,6 @@ app.delete('/ordenes/:id', async (req, res) => {
 // SERVIDOR
 // ========================================================
 
-app.listen(5000, () => console.log("Servidor ejecutándose en puerto 5000"));
+app.listen(PORT, () =>
+  console.log(`🚀 Servidor ejecutándose en puerto ${PORT}`)
+);

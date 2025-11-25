@@ -1,43 +1,63 @@
-'use strict';
+import fs from "fs";
+import path from "path";
+import { Sequelize } from "sequelize";
+import { fileURLToPath } from "url";
+import configFile from "../config/config.json" assert { type: "json" };
 
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
-const process = require('process');
+// Necesario porque ES Modules NO tienen __dirname
+const __filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
+
 const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
-const db = {};
+const env = process.env.NODE_ENV || "development";
+const config = configFile[env];
 
-let sequelize;
+export const db = {};
+export let sequelize;
+
+// Crear conexión
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
+  sequelize = new Sequelize(
+    config.database,
+    config.username,
+    config.password,
+    config
+  );
 }
 
-fs
-  .readdirSync(__dirname)
-  .filter(file => {
-    return (
-      file.indexOf('.') !== 0 &&
-      file !== basename &&
-      file.slice(-3) === '.js' &&
-      file.indexOf('.test.js') === -1
-    );
-  })
-  .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
-  });
+// Cargar todos los modelos automáticamente
+const modelFiles = fs.readdirSync(__dirname).filter((file) => {
+  return (
+    file.indexOf(".") !== 0 &&
+    file !== basename &&
+    file.endsWith(".js") &&
+    !file.endsWith(".test.js")
+  );
+});
 
-Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
+for (const file of modelFiles) {
+  const modelPath = path.join(__dirname, file);
+
+  // IMPORT DINÁMICO
+  const module = await import(modelPath);
+
+  // Cada archivo de modelo debe exportar default
+  const model = module.default(sequelize, Sequelize.DataTypes);
+
+  db[model.name] = model;
+}
+
+// Ejecutar asociaciones
+Object.values(db).forEach((model) => {
+  if (model.associate) {
+    model.associate(db);
   }
 });
 
+// Exportar
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-module.exports = db;
+export default db;
