@@ -2,11 +2,11 @@ import fs from "fs";
 import path from "path";
 import { Sequelize } from "sequelize";
 import { fileURLToPath } from "url";
-import configFile from "../config/config.json" assert { type: "json" };
+import configFile from "../config/config.json"; // ← se elimina assert
 
 // Necesario porque ES Modules NO tienen __dirname
 const __filename = fileURLToPath(import.meta.url);
-const _dirname = path.dirname(_filename);
+const __dirname = path.dirname(__filename); // ← corregido
 
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || "development";
@@ -61,3 +61,4 @@ db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
 export default db;
+
