@@ -4,7 +4,9 @@
   "main": "indexTienda.js",
   "type": "module",
   "scripts": {
-    "start": "node indexTienda.js"
+    "start": "node indexTienda.js",
+    "migrate": "sequelize-cli db:migrate",
+    "seed": "sequelize-cli db:seed:all"
   },
   "dependencies": {
     "cors": "^2.8.5",

@@ -2,16 +2,16 @@
   "development": {
     "username": "postgres",
     "password": "proyecto",
-    "database": "kozzy_db",
-    "host": "127.0.0.1",
+    "database": "kozzydb",
+    "host": "kozzyserver.postgres.database.azure.com",
     "dialect": "postgres",
     "port": 5432
   },
   "test": {
     "username": "postgres",
     "password": "proyecto",
-    "database": "kozzy_db_test",
-    "host": "127.0.0.1",
+    "database": "kozzyserver_test",
+    "host": "kozzyserver.postgres.database.azure.com",
     "dialect": "postgres",
     "port": 5432
   },

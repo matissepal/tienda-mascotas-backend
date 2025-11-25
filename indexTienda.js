@@ -3,7 +3,7 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
-import { sequelize } from "./database.js";
+
 import db from "./models/index.js"; // <-- IMPORTA TODOS LOS MODELOS
 
 const { Usuario, Producto, Orden, OrdProd } = db;
